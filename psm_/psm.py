@@ -223,5 +223,5 @@ def save_data(data, save_path):
         os.remove(save_path)
         print("Successfully! The File has been removed")
     
-    data.to_excel(save_path)
+    data.to_excel(save_path, index=False)
     
