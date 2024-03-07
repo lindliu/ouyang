@@ -218,6 +218,80 @@ def T_C_nearest_match(status, propensity_score, threshold=0.01, crop=None):
     
     return results
     
+
+def T_C_nearest_match_(status, propensity_score, ratio=3, crop=250):
+    mask_C = status==0
+    mask_T = status==1
+    org_ind = np.arange(status.shape[0])
+    
+    T_ps = propensity_score[mask_T]
+    C_ps = propensity_score[mask_C]
+    
+    dist_ = np.abs(T_ps.reshape([-1,1]) - C_ps)
+    
+    
+    
+
+    idx_all = np.arange(dist_.shape[0]*dist_.shape[1])
+    x,y = np.meshgrid(np.arange(dist_.shape[0]), np.arange(dist_.shape[1]))
+    x,y = x.T, y.T
+    idx_sort = np.argsort(dist_.flatten())
+    x_sort = x.flatten()[idx_sort]
+    y_sort = y.flatten()[idx_sort]
+    
+    coor_sort = np.c_[x_sort,y_sort]
+    
+    # mean_dist = []
+    # for crop in range(110, mask_T.sum()):
+    #     xx = np.unique(coor_sort[:crop,0])
+    #     yy = np.unique(coor_sort[:crop,1])
+        
+    #     mask = np.array([i in xx for i in coor_sort[:,0]])
+        
+    #     flag = True
+    #     k = 10
+    #     while flag:
+    #         select = coor_sort[mask,:][:k]
+            
+    #         if np.unique(select[:,1]).shape[0]<xx.shape[0]*ratio:
+    #             k = k+1
+    #         else:
+    #             flag = False
+        
+            
+    #     selected_x = np.unique(select[:,0])
+    #     selected_y = np.unique(select[:,1])
+        
+    #     dd = np.min(dist_[selected_x][:,selected_y], axis=0).mean()
+    #     mean_dist.append(dd)
+        
+    
+    xx = np.unique(coor_sort[:crop,0])
+    yy = np.unique(coor_sort[:crop,1])
+    
+    mask = np.array([i in xx for i in coor_sort[:,0]])
+    
+    flag = True
+    k = 10
+    while flag:
+        select = coor_sort[mask,:][:k]
+        
+        if np.unique(select[:,1]).shape[0]<xx.shape[0]*ratio:
+            k = k+1
+        else:
+            flag = False
+    
+    selected_x = np.unique(select[:,0])
+    selected_y = np.unique(select[:,1])
+    
+    final_idx_T = org_ind[mask_T][selected_x]
+    final_idx_C = org_ind[mask_C][selected_y]
+    
+    
+    results = np.r_[final_idx_T, final_idx_C]
+    print(f'number of T: {selected_x.shape[0]}, number of C: {selected_y.shape[0]}')
+    return results#final_idx_T, final_idx_C
+
 def save_data(data, save_path):
     if os.path.exists(save_path):
         os.remove(save_path)

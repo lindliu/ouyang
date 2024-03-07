@@ -15,10 +15,9 @@ data_file = '1257pdac'
 df = pd.read_stata('{}.dta'.format(data_file))
 
 
-status_name = 'tace'
-feature_name = ['peritoneum', 'kps', 'pcsize5', 'ca199500', 'ldh250', 'concur', "sctr","alt60",'lnm']
-                #"alb35", ]
-                
+status_name = 'concur'
+feature_name = ['kps90','childp','ca199500','ldh250','sctr','dif','exhep','pcloca'] #'pcsize'
+
 
 if __name__=="__main__":
     ######################
@@ -44,41 +43,33 @@ if __name__=="__main__":
     propensity_score = pre_logit(feature, status)
     
     ### match the treatment and control    
-    results = T_C_nearest_match(status, propensity_score, threshold=0.002, crop=T_num*4)
-    
-    num_T = status.sum()
-    results_T = results[:num_T]
-    results_C = results[num_T:]
-    
-    
-    
+    # results = T_C_nearest_match(status, propensity_score, threshold=0.002, crop=T_num*3)
+    results = T_C_nearest_match_(status, propensity_score, ratio=3, crop=280)
+
     
     selected = df.iloc[results,:]
-            
     mask_T = selected[f'{status_name}']==1
     selected_T = selected[mask_T]
     selected_C = selected[~mask_T]
     
-            
-    
-    ## get t test
-    from scipy import stats
-    tStat, pvalue_age = stats.ttest_ind(selected_T['age0'], selected_C['age0'], equal_var = False) #run independent sample T-Test
-    if pvalue_age<0.2:
-        print("P-Value:{0}".format(pvalue_age)) #print the P-Value and the T-Statistic
-    tStat, pvalue_pcsize = stats.ttest_ind(selected_T['pcsize'], selected_C['pcsize'], equal_var = False) #run independent sample T-Test
-    if pvalue_pcsize<0.2:
-        print("P-Value:{0}".format(pvalue_pcsize)) #print the P-Value and the T-Statistic
+    # ## get t test
+    # from scipy import stats
+    # tStat, pvalue_age = stats.ttest_ind(selected_T['age0'], selected_C['age0'], equal_var = False) #run independent sample T-Test
+    # if pvalue_age<0.2:
+    #     print("P-Value:{0}".format(pvalue_age)) #print the P-Value and the T-Statistic
+    # tStat, pvalue_pcsize = stats.ttest_ind(selected_T['pcsize'], selected_C['pcsize'], equal_var = False) #run independent sample T-Test
+    # if pvalue_pcsize<0.2:
+    #     print("P-Value:{0}".format(pvalue_pcsize)) #print the P-Value and the T-Statistic
         
             
     ## get ANOVA table as R like output
     import statsmodels.api as sm
     from statsmodels.formula.api import ols
     
-    anova_list = ['gender', 'kps80', 'pcloca', 'age65', 'peritoneum', 'wbc',\
-                  'pain', 'ca199500', 'cea10', 'alb35', 'tb', 'ldh', 'ca24220',\
-                  'sctr', 'liverm']
-                  # 'exhep',  'lnm', 'lungm', 'bonem', 'bg6',]
+    anova_list = ['kps','childp','ca199500','ldh250','sctr','pcsize',\
+                  'age0', 'gender', 'lnm', 'pcloca', 'lmextent1', 'wl10', 'dif',\
+                  'exhep', 'cea5', 'sctr', 'ldt']
+        
     pvalue = {}
     pvalue_problem = {}
     for cov in anova_list:
@@ -88,14 +79,14 @@ if __name__=="__main__":
         _pvalue = anova_table['PR(>F)'][cov]
         pvalue[cov] = _pvalue
     
-        if _pvalue<0.1:
+        if _pvalue<0.05:
             pvalue_problem[cov] = _pvalue
             
     print(pvalue_problem)
     
-    if len(pvalue_problem)==0 and pvalue_pcsize>0.37 and pvalue['gender']>0.3 and pvalue['age65']>0.2: #pvalue_age>0.23:
-    # if len(pvalue_problem)==0 and pvalue_pcsize>0.37 and pvalue['gender']>0.24 and pvalue_age>0.23:
-        flag = False
+    # if len(pvalue_problem)==0 and pvalue_pcsize>0.37 and pvalue['gender']>0.3 and pvalue['age65']>0.2: #pvalue_age>0.23:
+    # # if len(pvalue_problem)==0 and pvalue_pcsize>0.37 and pvalue['gender']>0.24 and pvalue_age>0.23:
+    #     flag = False
         
         
 
