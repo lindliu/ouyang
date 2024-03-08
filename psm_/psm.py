@@ -231,8 +231,6 @@ def T_C_nearest_match_(status, propensity_score, ratio=3, crop=250):
     
     
     
-
-    idx_all = np.arange(dist_.shape[0]*dist_.shape[1])
     x,y = np.meshgrid(np.arange(dist_.shape[0]), np.arange(dist_.shape[1]))
     x,y = x.T, y.T
     idx_sort = np.argsort(dist_.flatten())
@@ -264,23 +262,43 @@ def T_C_nearest_match_(status, propensity_score, ratio=3, crop=250):
         
     #     dd = np.min(dist_[selected_x][:,selected_y], axis=0).mean()
     #     mean_dist.append(dd)
-        
+    
     
     xx = np.unique(coor_sort[:crop,0])
     yy = np.unique(coor_sort[:crop,1])
     
     mask = np.array([i in xx for i in coor_sort[:,0]])
     
-    flag = True
-    k = 10
-    while flag:
-        select = coor_sort[mask,:][:k]
-        
-        if np.unique(select[:,1]).shape[0]<xx.shape[0]*ratio:
-            k = k+1
-        else:
-            flag = False
     
+    
+    if yy.shape[0]>xx.shape[0]*ratio:
+        k = 10
+        while True:
+            select = coor_sort[mask,:][:k]
+            if np.unique(select[:,0]).shape[0]<xx.shape[0]:
+                k = k+1
+                continue
+            else:
+                break
+    
+        while True:
+            select = coor_sort[mask,:][:k]
+            
+            if np.unique(select[:,1]).shape[0]>np.unique(select[:,0]).shape[0]*ratio:
+                k = k-1
+            else:
+                break
+            
+        
+    else:
+        k = 10
+        while True:
+            select = coor_sort[mask,:][:k]
+            if np.unique(select[:,1]).shape[0]<xx.shape[0]*ratio:
+                k = k+1
+            else:
+                break
+        
     selected_x = np.unique(select[:,0])
     selected_y = np.unique(select[:,1])
     
