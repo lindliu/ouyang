@@ -8,15 +8,22 @@ Created on Tue Mar  5 19:02:30 2024
 
 # import pandas as pd
 
-# df = pd.read_excel("Total.xlsx", index_col=None)
+# # df_ = pd.read_excel("Total.xlsx", index_col=None)
 
-# cluster = df['Cluster'].str.split(' ', n=1, expand=True)
+# df = pd.ExcelFile("Total.xlsx")
+# print(df.sheet_names)
+# df1 = pd.read_excel(df, '1st')
+# df2 = pd.read_excel(df, '2nd')
+# df3 = pd.read_excel(df, '3rd')
+# df_ = pd.concat([df1,df2,df3],axis=0)
+
+# cluster = df_['Cluster'].str.split(' ', n=1, expand=True)
 # cluster = cluster.rename(columns={0:'cluster', 1:'kPa'})
-# features = df.drop('Cluster', axis=1)
+# features = df_.drop('Cluster', axis=1)
 
-# df = pd.concat([features, cluster], axis=1)
-# df.to_csv('Total.csv', index=False)
-# print(df)
+# df_ = pd.concat([features, cluster], axis=1)
+# df_.to_csv('Total.csv', index=False)
+# print(df_)
 
 
 
@@ -42,20 +49,18 @@ y = df.cluster # Dependent variable
 
 features = X.columns
 
-
-
-
-
 # Split into train and test 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
 
+# from sklearn.preprocessing import StandardScaler
+# scaler = StandardScaler()
+# scaler.fit(X_train)
+# X_train = scaler.transform(X_train)
+# X_test = scaler.transform(X_test)
 
-from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-scaler.fit(X_train)
 
-X_train = scaler.transform(X_train)
-X_test = scaler.transform(X_test)
+
+
 
 
 # Train a machine learning model
@@ -70,12 +75,13 @@ y_pred = clf.predict(X_test)
 print(classification_report(y_pred, y_test))
 
 
-explainer = shap.Explainer(clf)
+explainer = shap.Explainer(clf, X_train)
 shap_values = explainer.shap_values(X_test)
+# shap_values = shap_values.transpose(2,0,1)
 
 # https://www.datacamp.com/tutorial/introduction-to-shap-values-machine-learning-interpretability
-shap.summary_plot(shap_values, X_test)
-shap.summary_plot(shap_values[0], X_test)
+shap.summary_plot(shap_values[...,0], X_test, plot_type='bar')
+shap.summary_plot(shap_values[...,0], X_test)
 
 
 shap.dependence_plot("Intensity_IntegratedIntensityEdge_YAP", shap_values[0], X_test,interaction_index="Intensity_IntegratedIntensity_YAP")
