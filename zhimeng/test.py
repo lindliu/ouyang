@@ -80,8 +80,8 @@ shap_values = explainer.shap_values(X_test)
 # shap_values = shap_values.transpose(2,0,1)
 
 # https://www.datacamp.com/tutorial/introduction-to-shap-values-machine-learning-interpretability
-shap.summary_plot(shap_values[...,0], X_test, plot_type='bar')
-shap.summary_plot(shap_values[...,0], X_test)
+shap.summary_plot(shap_values, X_test, plot_type='bar')
+shap.summary_plot(shap_values[0], X_test)
 
 
 shap.dependence_plot("Intensity_IntegratedIntensityEdge_YAP", shap_values[0], X_test,interaction_index="Intensity_IntegratedIntensity_YAP")
