@@ -10,7 +10,11 @@ import numpy as np
 
 
 def get_feature_importance(explainer, X_test):
-    shap_values = explainer.shap_values(X_test)
+    if explainer.__class__.__name__ == 'TreeExplainer':
+        shap_values = explainer.shap_values(X_test, check_additivity=False)
+    else:
+        shap_values = explainer.shap_values(X_test)
+
     shap_values = np.r_[shap_values]
     if len(shap_values.shape)==3:
         shap_values = np.sum(np.abs(shap_values), axis=0)
@@ -48,7 +52,7 @@ from scipy.stats import uniform
 from sklearn.linear_model import LogisticRegression
 def get_model_LR(X_train, y_train, scoring='roc_auc'):
 
-    model = LogisticRegression(class_weight="balanced", solver="liblinear", random_state=42)
+    model = LogisticRegression(class_weight="balanced", solver="liblinear")#, random_state=42)
     param = {'penalty': ['l2', 'l1'],
             'tol': [1e-5, 1e-3, 1e-2],
             'C': [0.1, 0.5, 1.0, 2.0], 
@@ -70,12 +74,12 @@ def get_model_XGBoost(X_train, y_train, scoring='roc_auc'):
 
     model = XGBClassifier(learning_rate=0.02, n_estimators=600, objective='binary:logistic', nthread=1)
     param = {'n_estimators': [100, 250, 600, 1000],
-                            'min_child_weight': [1, 5, 10],
-                            'gamma': [0.5, 1, 1.5, 2, 5],
-                            'subsample': [0.6, 0.8, 1.0],
-                            'colsample_bytree': [0.6, 0.8, 1.0],
-                            'max_depth': [3, 4, 5]
-                            }
+            'min_child_weight': [1, 5, 10],
+            'gamma': [0.5, 1, 1.5, 2, 5],
+            'subsample': [0.6, 0.8, 1.0],
+            'colsample_bytree': [0.6, 0.8, 1.0],
+            'max_depth': [3, 4, 5]
+            }
 
     # clf = GridSearchCV(model, param, n_jobs=-1, cv=5, scoring=scoring)
     clf = RandomizedSearchCV(model, param, n_jobs=-1, cv=5, scoring=scoring, random_state=42, n_iter=5)
@@ -89,7 +93,7 @@ def get_model_XGBoost(X_train, y_train, scoring='roc_auc'):
 from sklearn.ensemble import RandomForestClassifier
 def get_model_RF(X_train, y_train, scoring='roc_auc'):
 
-    model = RandomForestClassifier()
+    model = RandomForestClassifier()#(random_state=42)
     param = {
             'bootstrap': [True, False], #, False
             'max_depth': [10, 70, None],
@@ -97,6 +101,26 @@ def get_model_RF(X_train, y_train, scoring='roc_auc'):
             'min_samples_leaf': [5, 10], #4
             'min_samples_split': [5, 10], #5
             'n_estimators': [200, 500]  #200, 2000
+            }
+
+    clf = GridSearchCV(model, param, n_jobs=-1, cv=5, scoring=scoring)
+    # clf = RandomizedSearchCV(model, param, n_jobs=-1, cv=5, scoring=scoring, random_state=42, n_iter=5)
+    search = clf.fit(X_train, y_train)
+    model_best = get_best_model(model, search, X_train, y_train)
+
+    return model_best
+
+
+
+from sklearn.svm import SVC
+def get_model_SVC(X_train, y_train, scoring='roc_auc'):
+
+    model = SVC(probability=True)
+    param = {
+            'kernel': ['linear', 'poly', 'rbf', 'sigmoid'], #, False
+            'C': [0.1, 0.5, 1.0, 2.0],
+            # 'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 
+            # 'kernel': ['rbf']
             }
 
     clf = GridSearchCV(model, param, n_jobs=-1, cv=5, scoring=scoring)
