@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, f1_score
 import shap
 
 from fun import get_feature_importance
@@ -33,6 +33,7 @@ def get_importance_index(X_train, y_train, X_test, y_test, scoring):
     model_RF = get_model_RF(X_train, y_train['cluster'], scoring=scoring)
     print('Random Forest: ')
     print(classification_report(y_test, model_RF.predict(X_test)))
+    print(f1_score(y_test, model_RF.predict(X_test), average='weighted'))
     ### explain model
     explainer = shap.TreeExplainer(model_RF, X_train)
     importance_RF = get_feature_importance(explainer, X_test)
