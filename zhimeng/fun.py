@@ -26,7 +26,7 @@ def get_feature_importance(explainer, X_test):
 
 def get_best_model(model_best, search, X_train, y_train):
     model_best.set_params(**search.best_params_)
-    print(search.best_params_)
+    # print(search.best_params_)
 
     model_best.fit(X_train, y_train)
     return model_best
