@@ -72,7 +72,7 @@ def get_importance_index(X_train, y_train, X_test, y_test, scoring):
           
     return np.c_[index_NB, index_SVC, index_LR, index_XGBoost, index_RF], \
             np.c_[importance_NB, importance_SVC, importance_LR, importance_XGBoost, importance_RF], \
-                np.array([F1_NB, F1_SVC, F1_LR, F1_XGBoost, F1_RF])
+            np.array([F1_NB, F1_SVC, F1_LR, F1_XGBoost, F1_RF])
 
 #     print('LR, XGBoost, RF: ', np.array([F1_LR, F1_XGBoost, F1_RF]))
 #     return np.c_[index_LR, index_XGBoost, index_RF], \
