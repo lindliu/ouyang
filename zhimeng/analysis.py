@@ -169,7 +169,7 @@ if __name__=="__main__":
     import pickle
 
     F1_kPa, idx_kPa = [], []
-    for kPa in kPa_list[3:]:
+    for kPa in kPa_list[4:]:
         df_ = df[df['kPa']==kPa]
         X_train, y_train, X_test, y_test, X, features = get_data(df_)
         F1_list, idx_list = feature_extraction(X_train, y_train, X_test, y_test, X)
