@@ -59,10 +59,11 @@ def feature_extraction(X_train, y_train, X_test, y_test, X):
 
 
         ############### remove features by importance ranking ##################
-        if (F1>.8).any()==False:
-            print(f'all method fail: {F1}')
-            break
-        ranked_idx = ranked_idx[:,F1>.8]
+        if (F1>.8).sum()>=2:
+            ranked_idx = ranked_idx[:,F1>.8]  ### use model that F1 score larger than .8
+        else:
+            ranked_idx = ranked_idx[:,np.argsort(F1)[-2:]]  ### if all model F1 score less than .8, than use top 2 models
+
         ranked_idx_ = unique[ranked_idx.flatten()]
 
         unique_rank = []
@@ -169,7 +170,7 @@ if __name__=="__main__":
     import pickle
 
     F1_kPa, idx_kPa = [], []
-    for kPa in kPa_list[4:]:
+    for kPa in kPa_list:
         df_ = df[df['kPa']==kPa]
         X_train, y_train, X_test, y_test, X, features = get_data(df_)
         F1_list, idx_list = feature_extraction(X_train, y_train, X_test, y_test, X)
@@ -185,14 +186,14 @@ if __name__=="__main__":
             pickle.dump(idx_list, file)
 
 
-    with open('F1_kPa', 'wb') as file:
-        pickle.dump(F1_kPa, file)
+    # with open('F1_kPa', 'wb') as file:
+    #     pickle.dump(F1_kPa, file)
         
-    with open('idx_kPa', 'wb') as file:
-        pickle.dump(idx_kPa, file)
+    # with open('idx_kPa', 'wb') as file:
+    #     pickle.dump(idx_kPa, file)
 
-    # with open('F1_kPa', 'rb') as file:
-    #     F1_kPa = pickle.load(file)
+    # # with open('F1_kPa', 'rb') as file:
+    # #     F1_kPa = pickle.load(file)
 
-    # with open('idx_kPa', 'rb') as file:
-    #     idx_kPa = pickle.load(file)
+    # # with open('idx_kPa', 'rb') as file:
+    # #     idx_kPa = pickle.load(file)
